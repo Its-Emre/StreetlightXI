@@ -27,6 +27,12 @@ belongs to the group.
 - Unsold players can be re-listed for a "second chance"; every sale stamps
   the player card — **SOLD 🪙price · Team** — and the profile
 
+### Group Settings
+
+- One settings page (⚙️ in the navbar) with group-wide switches that apply
+  to every member instantly: **SOLD tags**, **golden frame**, **ratings**,
+  **leaderboards**, and **RTM** in auctions
+
 ### Core (Sprint 1)
 
 - Invite-gated accounts (JWT auth; registration needs the group code)

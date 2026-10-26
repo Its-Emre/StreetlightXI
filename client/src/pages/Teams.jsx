@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { ROLE_SHORT } from "../components/PlayerCard";
+import { useSettings } from "../context/SettingsContext";
 
 // Balance weight mirrors the server: unrated players count as 45.
 const weight = (p) => p.rating ?? 45;
@@ -16,6 +17,7 @@ const teamForPick = (i) => {
 };
 
 function TeamColumn({ title, captain, members, accent }) {
+  const { settings } = useSettings();
   const total = teamTotal(members);
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-800 bg-ink-900/70">
@@ -23,9 +25,11 @@ function TeamColumn({ title, captain, members, accent }) {
         <h3 className="font-display text-base font-black uppercase italic text-white">
           Team <span className={accent}>{title}</span>
         </h3>
-        <span className="text-sm text-ink-300">
-          strength <span className="font-display text-lg font-bold text-white">{total}</span>
-        </span>
+        {settings.ratings !== false && (
+          <span className="text-sm text-ink-300">
+            strength <span className="font-display text-lg font-bold text-white">{total}</span>
+          </span>
+        )}
       </div>
       <ul className="divide-y divide-ink-800">
         {members.map((p) => (
@@ -37,7 +41,9 @@ function TeamColumn({ title, captain, members, accent }) {
               )}
             </span>
             <span className="text-xs text-ink-500">{ROLE_SHORT[p.role] || "AR"}</span>
-            <span className="font-display text-base font-bold text-flood-400">{p.rating ?? "NEW"}</span>
+            {settings.ratings !== false && (
+              <span className="font-display text-base font-bold text-flood-400">{p.rating ?? "NEW"}</span>
+            )}
           </li>
         ))}
         {members.length === 0 && <li className="px-4 py-4 text-sm text-ink-500">No players yet.</li>}
@@ -47,6 +53,7 @@ function TeamColumn({ title, captain, members, accent }) {
 }
 
 function BalanceBanner({ a, b }) {
+  const { settings } = useSettings();
   const diff = Math.abs(teamTotal(a) - teamTotal(b));
   const note =
     diff <= 6 ? "Dead even — this will go to the last over. 🔥" :
@@ -54,12 +61,19 @@ function BalanceBanner({ a, b }) {
     "One side looks heavy — consider a swap.";
   return (
     <div className="rounded-2xl border border-pitch-500/30 bg-pitch-500/10 px-4 py-3 text-center text-sm text-pitch-400">
-      Strength difference: <span className="font-display text-lg font-bold">{diff}</span> — {note}
+      {settings.ratings !== false ? (
+        <>
+          Strength difference: <span className="font-display text-lg font-bold">{diff}</span> — {note}
+        </>
+      ) : (
+        <>Teams are set — may the best street win. 🏏</>
+      )}
     </div>
   );
 }
 
 export default function Teams() {
+  const { settings } = useSettings();
   const [players, setPlayers] = useState(null);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(new Set());
@@ -178,7 +192,10 @@ export default function Teams() {
                         : "border border-ink-700 text-ink-500 hover:border-ink-500 hover:text-ink-300"
                     }`}
                   >
-                    {p.name} <span className="opacity-70">{p.rating ?? "NEW"}</span>
+                    {p.name}{" "}
+                    {settings.ratings !== false && (
+                      <span className="opacity-70">{p.rating ?? "NEW"}</span>
+                    )}
                   </button>
                 );
               })}
@@ -269,7 +286,9 @@ export default function Teams() {
                     >
                       <span className="font-medium text-white">{p.name}</span>{" "}
                       <span className="text-xs text-ink-500">{ROLE_SHORT[p.role] || "AR"}</span>{" "}
-                      <span className="font-display font-bold text-flood-400">{p.rating ?? "NEW"}</span>
+                      {settings.ratings !== false && (
+                        <span className="font-display font-bold text-flood-400">{p.rating ?? "NEW"}</span>
+                      )}
                     </button>
                   ))}
                 </div>

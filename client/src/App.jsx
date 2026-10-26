@@ -8,6 +8,7 @@ import PlayerPage from "./pages/PlayerPage";
 import Teams from "./pages/Teams";
 import Auctions from "./pages/Auctions";
 import AuctionRoom from "./pages/AuctionRoom";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -101,6 +102,14 @@ export default function App() {
           element={
             <Protected>
               <AuctionRoom />
+            </Protected>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Protected>
+              <Settings />
             </Protected>
           }
         />

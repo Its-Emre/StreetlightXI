@@ -52,6 +52,17 @@ export default function Navbar() {
           <span className="hidden text-sm text-ink-300 md:inline">
             {user?.name}
           </span>
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `rounded-full px-3 py-1.5 text-base transition ${
+                isActive ? "bg-ink-700 text-white" : "text-ink-300 hover:text-white"
+              }`
+            }
+            title="Group settings"
+          >
+            ⚙️
+          </NavLink>
           <button
             onClick={onLogout}
             className="rounded-full border border-ink-700 px-3.5 py-1.5 text-sm text-ink-300 transition hover:border-ink-500 hover:text-white"
@@ -74,6 +85,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/auctions" className={linkCls}>
           Auction
+        </NavLink>
+        <NavLink to="/settings" className={linkCls}>
+          Settings
         </NavLink>
       </nav>
     </header>

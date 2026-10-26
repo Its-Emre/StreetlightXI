@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import PlayerCard from "../components/PlayerCard";
+import { useSettings } from "../context/SettingsContext";
 
 function BoardRow({ rank, player, value, label }) {
   return (
@@ -47,6 +48,7 @@ function Board({ title, icon, players, pick, label }) {
 }
 
 export default function Home() {
+  const { settings } = useSettings();
   const [players, setPlayers] = useState(null);
   const [error, setError] = useState("");
 
@@ -179,11 +181,13 @@ export default function Home() {
           </section>
 
           {/* Leaderboards */}
-          <section className="mt-10 grid gap-4 md:grid-cols-3">
-            <Board title="Most Runs" icon="🏏" players={players} pick={(p) => p.stats?.runs || 0} label="runs" />
-            <Board title="Most Wickets" icon="🎯" players={players} pick={(p) => p.stats?.wickets || 0} label="wkts" />
-            <Board title="Safe Hands" icon="🧤" players={players} pick={(p) => p.stats?.catches || 0} label="catches" />
-          </section>
+          {settings.leaderboards !== false && (
+            <section className="mt-10 grid gap-4 md:grid-cols-3">
+              <Board title="Most Runs" icon="🏏" players={players} pick={(p) => p.stats?.runs || 0} label="runs" />
+              <Board title="Most Wickets" icon="🎯" players={players} pick={(p) => p.stats?.wickets || 0} label="wkts" />
+              <Board title="Safe Hands" icon="🧤" players={players} pick={(p) => p.stats?.catches || 0} label="catches" />
+            </section>
+          )}
         </>
       )}
     </div>

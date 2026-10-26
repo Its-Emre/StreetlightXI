@@ -1,5 +1,6 @@
 import { Auction, AuctionTeam } from "../models/Auction.js";
 import Player from "../models/Player.js";
+import { getGroupSettings } from "../models/Settings.js";
 import { basePriceFor, MIN_INCREMENT, DEFAULT_PURSE } from "../utils/pricing.js";
 import { computeRating } from "../utils/rating.js";
 
@@ -262,7 +263,8 @@ export const sellLot = async (req, res) => {
   const winner = await AuctionTeam.findById(lot.leaderTeam);
   const playerDoc = await Player.findById(lot.player).select("auctionTag").lean();
   const formerName = playerDoc?.auctionTag?.teamName;
-  if (formerName && formerName !== winner.name) {
+  const settings = await getGroupSettings();
+  if (settings.rtm !== false && formerName && formerName !== winner.name) {
     const former = await AuctionTeam.findOne({
       auction: auction._id,
       name: formerName,

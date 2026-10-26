@@ -53,6 +53,8 @@ export const api = {
   unsoldLot: (id) => request(`/auctions/${id}/lots/unsold`, { method: "POST", body: {} }),
   resolveRtm: (id, decision) => request(`/auctions/${id}/rtm`, { method: "POST", body: { decision } }),
   finishAuction: (id) => request(`/auctions/${id}/finish`, { method: "POST", body: {} }),
+  getSettings: () => request("/settings"),
+  updateSettings: (payload) => request("/settings", { method: "PUT", body: payload }),
 };
 
 // Client mirror of the server's base-price formula, for lot previews.

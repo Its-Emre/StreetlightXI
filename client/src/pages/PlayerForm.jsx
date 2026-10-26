@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, parseDriveIdClient, thumbUrl } from "../lib/api";
 import DriveImage from "../components/DriveImage";
+import { useSettings } from "../context/SettingsContext";
 
 const ROLES = ["Batter", "Bowler", "All-Rounder", "Wicket-Keeper"];
 
@@ -24,6 +25,7 @@ export default function PlayerForm() {
   const { id } = useParams();
   const editing = Boolean(id);
   const navigate = useNavigate();
+  const { settings } = useSettings();
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("All-Rounder");
@@ -208,14 +210,16 @@ export default function PlayerForm() {
                   />
                 </div>
               ))}
-              <div className="flex items-end pb-1">
-                <p className="text-sm text-ink-300">
-                  Rating preview:{" "}
-                  <span className="font-display text-xl font-black italic text-flood-400">
-                    {rating ?? "NEW"}
-                  </span>
-                </p>
-              </div>
+              {settings.ratings !== false && (
+                <div className="flex items-end pb-1">
+                  <p className="text-sm text-ink-300">
+                    Rating preview:{" "}
+                    <span className="font-display text-xl font-black italic text-flood-400">
+                      {rating ?? "NEW"}
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
           </fieldset>
 
@@ -244,12 +248,14 @@ export default function PlayerForm() {
               className="h-full w-full object-cover object-top"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-transparent" />
-            <div className="absolute left-3.5 top-3.5">
-              <div className="font-display text-4xl font-black italic text-white">{rating ?? "—"}</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink-300">
-                {rating ? "Rating" : "New player"}
+            {settings.ratings !== false && (
+              <div className="absolute left-3.5 top-3.5">
+                <div className="font-display text-4xl font-black italic text-white">{rating ?? "—"}</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink-300">
+                  {rating ? "Rating" : "New player"}
+                </div>
               </div>
-            </div>
+            )}
             <div className="absolute inset-x-3.5 bottom-3.5">
               <div className="truncate font-display text-xl font-black uppercase italic text-white">
                 {name || "Player name"}

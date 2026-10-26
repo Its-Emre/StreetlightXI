@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import playerRoutes from "./routes/playerRoutes.js";
 import auctionRoutes from "./routes/auctionRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 import { getThumb } from "./controllers/mediaController.js";
 
 const app = express();
@@ -32,6 +33,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/players", playerRoutes);
 app.use("/api/auctions", auctionRoutes);
+app.use("/api/settings", settingsRoutes);
 // Drive artwork proxy (public by design — see mediaController.js).
 app.get("/api/media/:driveId/thumb", getThumb);
 

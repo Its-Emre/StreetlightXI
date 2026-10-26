@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import PlayerCard from "../components/PlayerCard";
 
 function StatBox({ label, value }) {
@@ -16,6 +17,7 @@ function StatBox({ label, value }) {
 export default function PlayerPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [player, setPlayer] = useState(null);
   const [error, setError] = useState("");
@@ -98,7 +100,9 @@ export default function PlayerPage() {
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatBox label="Rating" value={player.rating ?? "NEW"} />
+            {settings.ratings !== false && (
+              <StatBox label="Rating" value={player.rating ?? "NEW"} />
+            )}
             <StatBox label="Matches" value={s.matches || 0} />
             <StatBox label="Runs" value={s.runs || 0} />
             <StatBox label="Highest score" value={s.highestScore || 0} />
@@ -106,7 +110,7 @@ export default function PlayerPage() {
             <StatBox label="Catches" value={s.catches || 0} />
           </div>
 
-          {player.auctionTag && (
+          {player.auctionTag && settings.soldTags !== false && (
             <div className="mt-6 rounded-2xl border border-flood-500/40 bg-flood-500/10 px-4 py-3.5">
               <span className="font-display text-lg font-black italic text-flood-400">
                 SOLD 🪙{player.auctionTag.price}

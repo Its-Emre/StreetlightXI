@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import DriveImage from "./DriveImage";
 import { thumbUrl } from "../lib/api";
+import { useSettings } from "../context/SettingsContext";
 
 export const ROLE_SHORT = {
   Batter: "BAT",
@@ -13,8 +14,10 @@ export const ROLE_SHORT = {
 // game card: big rating, role tag, photo under a floodlight gradient,
 // and a stat strip. The group's top-rated player gets the gold frame.
 export default function PlayerCard({ player, golden = false }) {
+  const { settings } = useSettings();
+  const showGolden = golden && settings.goldenFrame !== false;
   const s = player.stats || {};
-  const frame = golden
+  const frame = showGolden
     ? "bg-gradient-to-b from-flood-300 via-flood-500 to-flood-600 p-[2px] shadow-[0_0_32px_rgba(245,185,33,0.25)]"
     : "bg-ink-700 p-px";
 
@@ -38,21 +41,25 @@ export default function PlayerCard({ player, golden = false }) {
           {/* Rating + role */}
           <div className="relative flex items-start justify-between p-3.5">
             <div>
-              <div
-                className={`font-display text-4xl font-black italic leading-none ${
-                  golden ? "text-flood-400" : "text-white"
-                }`}
-              >
-                {player.rating ?? "—"}
-              </div>
-              <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-ink-300">
-                {player.rating ? "Rating" : "New player"}
-              </div>
+              {settings.ratings !== false && (
+                <>
+                  <div
+                    className={`font-display text-4xl font-black italic leading-none ${
+                      showGolden ? "text-flood-400" : "text-white"
+                    }`}
+                  >
+                    {player.rating ?? "—"}
+                  </div>
+                  <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-ink-300">
+                    {player.rating ? "Rating" : "New player"}
+                  </div>
+                </>
+              )}
               <div className="mt-2 inline-block rounded-md bg-ink-950/70 px-2 py-0.5 font-display text-xs font-bold italic tracking-wide text-flood-300 ring-1 ring-flood-500/40">
                 {ROLE_SHORT[player.role] || "AR"} · {player.role}
               </div>
             </div>
-            {golden && (
+            {showGolden && (
               <span className="rounded-full bg-flood-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-ink-950">
                 ★ Golden
               </span>
@@ -61,7 +68,7 @@ export default function PlayerCard({ player, golden = false }) {
 
           {/* Name + stats */}
           <div className="relative mt-auto p-3.5 pt-0">
-            {player.auctionTag && (
+            {player.auctionTag && settings.soldTags !== false && (
               <div className="mb-2 inline-block max-w-full truncate rounded-md bg-flood-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-ink-950">
                 Sold 🪙{player.auctionTag.price} · {player.auctionTag.teamName}
               </div>
