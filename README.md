@@ -9,7 +9,9 @@ one-tap auto-balance). An IPL-style **Auction Room** arrives in Sprint 2.
 Access is invite-only: registration requires the group's code, and every card
 belongs to the group.
 
-**Status:** Sprint 2 — the Auction Room is in.
+**Live:** https://streetlight-xi.vercel.app · API: https://streetlightxi.onrender.com
+
+**Status:** Sprint 3 — deployed and live (auth, cards, team maker, Auction Room, group settings).
 
 ## Features
 
