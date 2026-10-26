@@ -9,9 +9,25 @@ one-tap auto-balance). An IPL-style **Auction Room** arrives in Sprint 2.
 Access is invite-only: registration requires the group's code, and every card
 belongs to the group.
 
-**Status:** Sprint 1 — core app (auth, player cards, leaderboards, team maker).
+**Status:** Sprint 2 — the Auction Room is in.
 
-## Features (Sprint 1)
+## Features
+
+### Auction Room (Sprint 2)
+
+- Host an auction night: name + purse per team (coins); anyone joins as a
+  team captain; the host runs the room as auctioneer
+- **Base prices come from the ratings** — a 99-rated legend starts at 🪙200,
+  a newcomer at 🪙90 — so nobody argues about worth
+- Live bidding from every phone (quick bids or custom amounts, minimum
+  increment 🪙5, purse enforced server-side), a big stage view with the
+  current lot, and a live bid feed
+- **Right to Match (RTM):** if a player sells to a new team, his former
+  team (same name, RTM unused) can match the price and take him back
+- Unsold players can be re-listed for a "second chance"; every sale stamps
+  the player card — **SOLD 🪙price · Team** — and the profile
+
+### Core (Sprint 1)
 
 - Invite-gated accounts (JWT auth; registration needs the group code)
 - Player cards — photo (Google Drive), role, career stats — with a computed
@@ -29,9 +45,6 @@ belongs to the group.
 
 ## Roadmap
 
-- **Sprint 2 — Auction Room:** equal purses, base prices set by card ratings,
-  live bidding on phones, Big Screen Mode, Right-to-Match cards; sold prices
-  land on the player cards
 - **Sprint 3 — Deploy + story layer:** Render/Vercel launch; season mode,
   nemesis board, awards night
 

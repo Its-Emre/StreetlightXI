@@ -41,7 +41,32 @@ export const api = {
   createPlayer: (payload) => request("/players", { method: "POST", body: payload }),
   updatePlayer: (id, payload) => request(`/players/${id}`, { method: "PUT", body: payload }),
   deletePlayer: (id) => request(`/players/${id}`, { method: "DELETE" }),
+  listAuctions: () => request("/auctions"),
+  createAuction: (payload) => request("/auctions", { method: "POST", body: payload }),
+  getAuction: (id) => request(`/auctions/${id}`),
+  createTeam: (id, payload) => request(`/auctions/${id}/teams`, { method: "POST", body: payload }),
+  startAuction: (id) => request(`/auctions/${id}/start`, { method: "POST", body: {} }),
+  nextLot: (id, playerId) =>
+    request(`/auctions/${id}/lots/next`, { method: "POST", body: playerId ? { playerId } : {} }),
+  placeBid: (id, amount) => request(`/auctions/${id}/bid`, { method: "POST", body: { amount } }),
+  sellLot: (id) => request(`/auctions/${id}/lots/sold`, { method: "POST", body: {} }),
+  unsoldLot: (id) => request(`/auctions/${id}/lots/unsold`, { method: "POST", body: {} }),
+  resolveRtm: (id, decision) => request(`/auctions/${id}/rtm`, { method: "POST", body: { decision } }),
+  finishAuction: (id) => request(`/auctions/${id}/finish`, { method: "POST", body: {} }),
 };
+
+// Client mirror of the server's base-price formula, for lot previews.
+export function basePricePreview(player) {
+  const s = player?.stats || {};
+  const matches = Number(s.matches) || 0;
+  let rating = 45;
+  if (matches > 0) {
+    const points =
+      (Number(s.runs) || 0) + 25 * (Number(s.wickets) || 0) + 10 * (Number(s.catches) || 0);
+    rating = Math.round(45 + Math.min(points / matches, 54));
+  }
+  return Math.max(20, Math.round((rating * 2) / 5) * 5);
+}
 
 // Mirrors the server's Drive-link parser, for live form previews.
 export function parseDriveIdClient(input) {

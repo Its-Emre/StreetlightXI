@@ -106,11 +106,22 @@ export default function PlayerPage() {
             <StatBox label="Catches" value={s.catches || 0} />
           </div>
 
+          {player.auctionTag && (
+            <div className="mt-6 rounded-2xl border border-flood-500/40 bg-flood-500/10 px-4 py-3.5">
+              <span className="font-display text-lg font-black italic text-flood-400">
+                SOLD 🪙{player.auctionTag.price}
+              </span>{" "}
+              <span className="text-sm text-ink-100">
+                to <span className="font-semibold">{player.auctionTag.teamName}</span>
+                {player.auctionTag.auctionName ? ` — ${player.auctionTag.auctionName}` : ""}
+              </span>
+            </div>
+          )}
+
           <p className="mt-5 text-sm leading-relaxed text-ink-300">
             Scores <span className="font-semibold text-white">{runsPerMatch}</span> runs per match
             across his career under the lights. The rating blends runs, wickets and catches per
-            match — the same number that will set his auction base price when the Auction Room
-            opens.
+            match — the same number that sets his base price in the Auction Room.
           </p>
         </div>
       </div>

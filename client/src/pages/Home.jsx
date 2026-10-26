@@ -141,6 +141,26 @@ export default function Home() {
 
       {players && players.length > 0 && (
         <>
+          {/* Auction Room banner */}
+          <Link
+            to="/auctions"
+            className="fade-up mb-10 flex flex-wrap items-center gap-4 rounded-3xl border border-flood-500/40 bg-gradient-to-r from-flood-500/15 via-ink-900 to-ink-900 px-6 py-5 transition hover:border-flood-400"
+          >
+            <div className="text-4xl">🔨</div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-2xl font-black italic text-white">
+                The Auction Room is <span className="text-flood-400">open</span>
+              </h2>
+              <p className="text-sm text-ink-300">
+                Equal purses, base prices set by ratings, live bidding from every phone.
+                Auction night starts here.
+              </p>
+            </div>
+            <span className="rounded-full bg-flood-500 px-5 py-2 font-display text-sm font-black italic text-ink-950">
+              ENTER →
+            </span>
+          </Link>
+
           {/* Top rated cards */}
           <section className="fade-up">
             <div className="mb-4 flex items-end justify-between">

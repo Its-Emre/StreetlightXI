@@ -23,6 +23,20 @@ const playerSchema = new mongoose.Schema(
     // Google Drive file id of the player's photo (optional).
     photoDriveId: { type: String, trim: true, default: "" },
     stats: { type: statsSchema, default: () => ({}) },
+    // Set when the player is sold in an auction — the card then wears
+    // its price tag ("SOLD 240 · Street Kings, Season 1 Mega Auction").
+    auctionTag: {
+      type: new mongoose.Schema(
+        {
+          price: { type: Number, required: true },
+          teamName: { type: String, default: "" },
+          auctionName: { type: String, default: "" },
+          soldAt: { type: Date, default: Date.now },
+        },
+        { _id: false }
+      ),
+      default: undefined,
+    },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }

@@ -61,6 +61,11 @@ export default function PlayerCard({ player, golden = false }) {
 
           {/* Name + stats */}
           <div className="relative mt-auto p-3.5 pt-0">
+            {player.auctionTag && (
+              <div className="mb-2 inline-block max-w-full truncate rounded-md bg-flood-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-ink-950">
+                Sold 🪙{player.auctionTag.price} · {player.auctionTag.teamName}
+              </div>
+            )}
             <h3 className="truncate font-display text-xl font-black uppercase italic leading-tight text-white">
               {player.name}
             </h3>

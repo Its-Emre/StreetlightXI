@@ -37,6 +37,9 @@ export default function Navbar() {
           <NavLink to="/teams" className={linkCls}>
             Teams
           </NavLink>
+          <NavLink to="/auctions" className={linkCls}>
+            Auction
+          </NavLink>
         </nav>
 
         <div className="ml-auto flex items-center gap-2.5">
@@ -68,6 +71,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/teams" className={linkCls}>
           Teams
+        </NavLink>
+        <NavLink to="/auctions" className={linkCls}>
+          Auction
         </NavLink>
       </nav>
     </header>

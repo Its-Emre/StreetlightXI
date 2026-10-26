@@ -6,6 +6,8 @@ import Players from "./pages/Players";
 import PlayerForm from "./pages/PlayerForm";
 import PlayerPage from "./pages/PlayerPage";
 import Teams from "./pages/Teams";
+import Auctions from "./pages/Auctions";
+import AuctionRoom from "./pages/AuctionRoom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -83,6 +85,22 @@ export default function App() {
           element={
             <Protected>
               <Teams />
+            </Protected>
+          }
+        />
+        <Route
+          path="/auctions"
+          element={
+            <Protected>
+              <Auctions />
+            </Protected>
+          }
+        />
+        <Route
+          path="/auctions/:id"
+          element={
+            <Protected>
+              <AuctionRoom />
             </Protected>
           }
         />
