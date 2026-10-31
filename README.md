@@ -3,17 +3,40 @@
 **The game begins when the lights come on.**
 
 A private web app for one gully cricket group: **player cards** with editable
-career stats, **leaderboards**, and a **team maker** (captains' snake draft or
-one-tap auto-balance). An IPL-style **Auction Room** arrives in Sprint 2.
+career stats, **leaderboards**, a **team maker** (captains' snake draft or
+one-tap auto-balance), an IPL-style **Auction Room**, and a mobile-first
+**Live Match Centre** — ball-by-ball scoring whose figures land on the
+career cards by themselves.
 
 Access is invite-only: registration requires the group's code, and every card
 belongs to the group.
 
 **Live:** https://streetlight-xi.vercel.app · API: https://streetlightxi.onrender.com
 
-**Status:** Sprint 3 — deployed and live (auth, cards, team maker, Auction Room, group settings).
+**Status:** Sprint 4 — Live Match Centre built (auth, cards, team maker, Auction Room, group settings, live scoring).
 
 ## Features
+
+### Live Match Centre (Sprint 4)
+
+- The full match day in one flow: pick both squads (or **auto-split by
+  rating**), choose the overs, run an animated **coin toss**, set the
+  openers — then score ball by ball
+- An **event-sourced scoring engine**: each innings is stored as a ball
+  event log and everything else is derived from it — which makes
+  **Undo** trivial and the scoreboard free
+- Scoring pad built for one thumb on a phone: 0–3 / 4 / 6, **wicket sheet**
+  (how out, bowler credit, fielder — catches feed the career stat),
+  wide and no-ball flows; strike rotation, over changes and the
+  no-consecutive-overs rule are handled automatically
+- **Live math**: CRR always; in a chase, the target, **RRR** and
+  "need X off Y balls"; the chase ends the ball the target is crossed
+- At full time the result is written and every figure is applied to the
+  career cards **exactly once** — matches, runs, highest score, wickets,
+  catches — so ratings and the next auction's base prices move on their own
+- Every match is saved as a full **scoreboard**: batting and bowling
+  cards, over-by-over ball log, and a top-performances hero (best batter
+  and best bowler with photo and stat tiles)
 
 ### Auction Room (Sprint 2)
 
@@ -42,8 +65,8 @@ belongs to the group.
   **rating**: `points = runs + 25·wickets + 10·catches`, scaled per match into
   a 45–99 band (players with no matches are "NEW"). The group's top-rated
   player wears the **gold frame**
-- Stats are edited directly on the card — deliberately **no match-record
-  entry**: the group shouldn't do homework after a game
+- Stats can be edited directly on the card — and since Sprint 4,
+  live-scored matches add their figures to the cards automatically
 - Home leaderboards: most runs, most wickets, safest hands
 - **Team maker**: pick today's squad, then either a captains' **snake draft**
   (alternating picks, live strength totals, undo/reset) or **auto-balance**
@@ -53,8 +76,7 @@ belongs to the group.
 
 ## Roadmap
 
-- **Sprint 3 — Deploy + story layer:** Render/Vercel launch; season mode,
-  nemesis board, awards night
+- Season mode, nemesis board, awards night
 
 ## Stack
 

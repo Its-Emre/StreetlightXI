@@ -8,6 +8,10 @@ import PlayerPage from "./pages/PlayerPage";
 import Teams from "./pages/Teams";
 import Auctions from "./pages/Auctions";
 import AuctionRoom from "./pages/AuctionRoom";
+import Matches from "./pages/Matches";
+import MatchNew from "./pages/MatchNew";
+import MatchLive from "./pages/MatchLive";
+import MatchView from "./pages/MatchView";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -102,6 +106,38 @@ export default function App() {
           element={
             <Protected>
               <AuctionRoom />
+            </Protected>
+          }
+        />
+        <Route
+          path="/matches"
+          element={
+            <Protected>
+              <Matches />
+            </Protected>
+          }
+        />
+        <Route
+          path="/matches/new"
+          element={
+            <Protected>
+              <MatchNew />
+            </Protected>
+          }
+        />
+        <Route
+          path="/matches/:id/live"
+          element={
+            <Protected>
+              <MatchLive />
+            </Protected>
+          }
+        />
+        <Route
+          path="/matches/:id"
+          element={
+            <Protected>
+              <MatchView />
             </Protected>
           }
         />

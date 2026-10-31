@@ -50,6 +50,7 @@ function Board({ title, icon, players, pick, label }) {
 export default function Home() {
   const { settings } = useSettings();
   const [players, setPlayers] = useState(null);
+  const [liveMatches, setLiveMatches] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -57,6 +58,10 @@ export default function Home() {
       .listPlayers()
       .then(({ players }) => setPlayers(players))
       .catch((e) => setError(e.message));
+    api
+      .listMatches()
+      .then(({ matches }) => setLiveMatches(matches.filter((m) => m.status === "live")))
+      .catch(() => {});
   }, []);
 
   const totals = (players || []).reduce(
@@ -141,8 +146,56 @@ export default function Home() {
         </div>
       )}
 
+      {liveMatches.map((m) => {
+        const cur = m.innings[m.innings.length - 1];
+        return (
+          <Link
+            key={m.id}
+            to={`/matches/${m.id}/live`}
+            className="fade-up mb-6 flex flex-wrap items-center gap-4 rounded-3xl border border-red-500/40 bg-gradient-to-r from-red-500/15 via-ink-900 to-ink-900 px-6 py-5 transition hover:border-red-400"
+          >
+            <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white">● LIVE</span>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-2xl font-black italic text-white">
+                {m.teamA.name} vs {m.teamB.name}
+                {cur && (
+                  <span className="text-flood-400">
+                    {" "}
+                    — {cur.state.runs}/{cur.state.wickets} ({cur.state.overs})
+                  </span>
+                )}
+              </h2>
+              <p className="text-sm text-ink-300">Match chal raha hai — scorer aur live score yahin se.</p>
+            </div>
+            <span className="rounded-full bg-flood-500 px-5 py-2 font-display text-sm font-black italic text-ink-950">
+              WATCH →
+            </span>
+          </Link>
+        );
+      })}
+
       {players && players.length > 0 && (
         <>
+          {/* Match Centre banner */}
+          <Link
+            to="/matches"
+            className="fade-up mb-6 flex flex-wrap items-center gap-4 rounded-3xl border border-pitch-500/40 bg-gradient-to-r from-pitch-500/15 via-ink-900 to-ink-900 px-6 py-5 transition hover:border-pitch-400"
+          >
+            <div className="text-4xl">🏏</div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-2xl font-black italic text-white">
+                The Match Centre is <span className="text-pitch-400">live</span>
+              </h2>
+              <p className="text-sm text-ink-300">
+                Ball-by-ball scoring from your phone — teams, toss, CRR/RRR, saved
+                scoreboards, and stats that land on the cards by themselves.
+              </p>
+            </div>
+            <span className="rounded-full bg-pitch-500 px-5 py-2 font-display text-sm font-black italic text-white">
+              PLAY →
+            </span>
+          </Link>
+
           {/* Auction Room banner */}
           <Link
             to="/auctions"

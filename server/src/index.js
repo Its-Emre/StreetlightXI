@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import playerRoutes from "./routes/playerRoutes.js";
 import auctionRoutes from "./routes/auctionRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import matchRoutes from "./routes/matchRoutes.js";
 import { getThumb } from "./controllers/mediaController.js";
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/players", playerRoutes);
 app.use("/api/auctions", auctionRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/matches", matchRoutes);
 // Drive artwork proxy (public by design — see mediaController.js).
 app.get("/api/media/:driveId/thumb", getThumb);
 

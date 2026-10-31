@@ -37,6 +37,9 @@ export default function Navbar() {
           <NavLink to="/teams" className={linkCls}>
             Teams
           </NavLink>
+          <NavLink to="/matches" className={linkCls}>
+            Matches
+          </NavLink>
           <NavLink to="/auctions" className={linkCls}>
             Auction
           </NavLink>
@@ -82,6 +85,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/teams" className={linkCls}>
           Teams
+        </NavLink>
+        <NavLink to="/matches" className={linkCls}>
+          Matches
         </NavLink>
         <NavLink to="/auctions" className={linkCls}>
           Auction

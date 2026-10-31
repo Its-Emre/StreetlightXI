@@ -55,6 +55,15 @@ export const api = {
   finishAuction: (id) => request(`/auctions/${id}/finish`, { method: "POST", body: {} }),
   getSettings: () => request("/settings"),
   updateSettings: (payload) => request("/settings", { method: "PUT", body: payload }),
+  listMatches: () => request("/matches"),
+  createMatch: (payload) => request("/matches", { method: "POST", body: payload }),
+  getMatch: (id) => request(`/matches/${id}`),
+  recordToss: (id, payload) => request(`/matches/${id}/toss`, { method: "POST", body: payload }),
+  beginNextInnings: (id) => request(`/matches/${id}/innings`, { method: "POST", body: {} }),
+  matchEvent: (id, event) => request(`/matches/${id}/events`, { method: "POST", body: { event } }),
+  undoEvent: (id) => request(`/matches/${id}/undo`, { method: "POST", body: {} }),
+  abandonMatch: (id) => request(`/matches/${id}/abandon`, { method: "POST", body: {} }),
+  deleteMatch: (id) => request(`/matches/${id}`, { method: "DELETE" }),
 };
 
 // Client mirror of the server's base-price formula, for lot previews.
