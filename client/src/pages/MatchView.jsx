@@ -195,7 +195,10 @@ export default function MatchView() {
       {match.innings.map((inn, idx) => {
         const battingTeam = inn.battingTeam === "A" ? match.teamA : match.teamB;
         const st = inn.state;
-        const yetToBat = battingTeam.players.filter((pid) => !st.batting.some((b) => b.player === pid));
+        const battingPool = match.commonPlayer
+          ? [...battingTeam.players, match.commonPlayer]
+          : battingTeam.players;
+        const yetToBat = battingPool.filter((pid) => !st.batting.some((b) => b.player === pid));
         const oversAll = [...st.oversLog, ...(st.thisOver.length ? [st.thisOver] : [])];
         return (
           <section key={idx} className="mt-8">
@@ -224,6 +227,11 @@ export default function MatchView() {
                     <span className="block truncate font-semibold text-white">
                       {nameOf(b.player)}
                       {st.strikerId === b.player && !b.out ? " *" : ""}
+                      {b.player === match.commonPlayer && (
+                        <span className="ml-1.5 rounded-full bg-flood-500/20 px-1.5 py-0.5 align-middle text-[10px] font-bold text-flood-300 ring-1 ring-flood-500/40">
+                          🌟 COMMON
+                        </span>
+                      )}
                     </span>
                     <span className="block truncate text-xs text-ink-400 sm:hidden">{dismissalText(b, nameOf)}</span>
                   </span>

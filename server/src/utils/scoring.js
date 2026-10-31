@@ -66,9 +66,11 @@ export function deriveInnings(log, ctx) {
     thisOver: [],
     oversLog: [], // completed overs' chip lists
     complete: false,
+    lone: false, // last man standing — one batsman, no partner
   };
 
   const swapEnds = () => {
+    if (st.lone) return; // the last man is at both ends already
     const t = st.strikerId;
     st.strikerId = st.nonStrikerId;
     st.nonStrikerId = t;
@@ -85,7 +87,10 @@ export function deriveInnings(log, ctx) {
 
   const checkComplete = () => {
     if (st.legalBalls >= ctx.oversLimit * BALLS_PER_OVER) st.complete = true;
-    if (st.wickets >= ctx.squadSize - 1) st.complete = true;
+    // Normally all out = squadSize - 1 wickets (one not-out remains).
+    // With last-man-stands the innings ends only when he falls too.
+    const maxWickets = ctx.lastManStands ? ctx.squadSize : ctx.squadSize - 1;
+    if (st.wickets >= maxWickets) st.complete = true;
     if (ctx.target && st.teamRuns >= ctx.target) st.complete = true;
   };
 
@@ -168,8 +173,15 @@ export function deriveInnings(log, ctx) {
       };
       st.thisOver.push("W");
       if (runs % 2 === 1) swapEnds();
-      // The dismissed player's slot is now vacant (unless all out).
-      if (st.wickets < ctx.squadSize - 1) {
+      if (ctx.lastManStands && st.wickets === ctx.squadSize - 1) {
+        // Last man standing: the survivor bats alone from here —
+        // no partner comes in, and he faces every ball.
+        const survivor = ev.outId === st.strikerId ? st.nonStrikerId : st.strikerId;
+        st.strikerId = survivor;
+        st.nonStrikerId = null;
+        st.lone = true;
+      } else if (st.wickets < ctx.squadSize - 1) {
+        // The dismissed player's slot is now vacant.
         if (ev.outId === st.strikerId) {
           st.strikerId = null;
           st.pendingSlot = "striker";
@@ -209,6 +221,7 @@ export function deriveInnings(log, ctx) {
     lastBowlerId: st.lastBowlerId,
     needsBowler: st.needsBowler && !st.complete,
     needsBatsman: st.needsBatsman && !st.complete,
+    loneBatsman: st.lone,
     thisOver: st.thisOver,
     oversLog: st.oversLog,
     complete: st.complete,
@@ -249,7 +262,8 @@ export function validateEvent(derived, ev, ctx) {
   }
   if (ev.kind === "ball") {
     if (derived.needsBatsman) return "Choose the next batsman first";
-    if (!derived.strikerId || !derived.nonStrikerId) return "Openers are not set";
+    if (!derived.strikerId) return "Openers are not set";
+    if (!derived.nonStrikerId && !derived.loneBatsman) return "Openers are not set";
     if (derived.needsBowler || !derived.bowlerId) return "Choose the bowler first";
     if (ev.outcome === "bat") {
       if (![0, 1, 2, 3, 4, 6].includes(ev.runs)) return "Runs must be 0, 1, 2, 3, 4 or 6";
@@ -281,12 +295,12 @@ export function validateEvent(derived, ev, ctx) {
 
 // Result text + top performers for a finished match, computed from both
 // innings' derived states.
-export function describeResult(teamAName, teamBName, inn1, inn2, battingFirstKey, chasingSquadSize) {
+export function describeResult(teamAName, teamBName, inn1, inn2, battingFirstKey, chasingMaxWickets) {
   const firstName = battingFirstKey === "A" ? teamAName : teamBName;
   const secondName = battingFirstKey === "A" ? teamBName : teamAName;
   if (!inn2) return null;
   if (inn2.runs >= inn1.runs + 1) {
-    const wktsLeft = chasingSquadSize - 1 - inn2.wickets;
+    const wktsLeft = chasingMaxWickets - inn2.wickets;
     return `${secondName} won by ${wktsLeft} wicket${wktsLeft === 1 ? "" : "s"}`;
   }
   if (inn2.runs < inn1.runs) {

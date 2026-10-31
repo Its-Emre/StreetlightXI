@@ -9,19 +9,30 @@ import {
 
 // ---- derivation helpers -------------------------------------------------
 
-const squadSize = (match, key) =>
-  (key === "A" ? match.teamA.players : match.teamB.players).length;
+// The batting pool: the team's own players, plus the common player
+// when one is designated (he bats for both sides). A pool of exactly
+// 3 plays last-man-stands: the final batsman needs no partner.
+const battingPool = (match, key) =>
+  (key === "A" ? match.teamA.players : match.teamB.players).length +
+  (match.commonPlayer ? 1 : 0);
+
+const maxWicketsFor = (pool) => (pool === 3 ? pool : pool - 1);
+
+function ctxFor(match, battingTeam, target) {
+  const pool = battingPool(match, battingTeam);
+  return {
+    squadSize: pool,
+    oversLimit: match.oversPerInnings,
+    target,
+    lastManStands: pool === 3,
+  };
+}
 
 function deriveAll(match) {
   const derived = [];
   let target = null;
   match.innings.forEach((inn, i) => {
-    const ctx = {
-      squadSize: squadSize(match, inn.battingTeam),
-      oversLimit: match.oversPerInnings,
-      target: i === 1 ? target : null,
-    };
-    const d = deriveInnings(inn.log || [], ctx);
+    const d = deriveInnings(inn.log || [], ctxFor(match, inn.battingTeam, i === 1 ? target : null));
     derived.push(d);
     if (i === 0) target = d.runs + 1;
   });
@@ -48,6 +59,7 @@ function matchView(match) {
     teamB: { name: match.teamB.name, players: match.teamB.players },
     oversPerInnings: match.oversPerInnings,
     toss: match.toss,
+    commonPlayer: match.commonPlayer ? String(match.commonPlayer) : null,
     status: match.status,
     phase,
     innings: match.innings.map((inn, i) => ({
@@ -67,13 +79,24 @@ function matchView(match) {
 // Applies the finished match's figures to the career cards — once.
 async function applyStats(match, derived) {
   if (match.statsApplied) return;
+  // A common player bats in BOTH innings — figures must be summed
+  // across innings, not overwritten.
   const batting = new Map();
   const bowling = new Map();
   const catches = new Map();
 
   derived.forEach((d) => {
-    d.batting.forEach((b) => batting.set(b.player, b));
-    d.bowling.forEach((b) => bowling.set(b.player, b));
+    d.batting.forEach((b) => {
+      const prev = batting.get(b.player);
+      batting.set(b.player, {
+        runs: (prev?.runs || 0) + b.runs,
+        best: Math.max(prev?.best || 0, b.runs),
+      });
+    });
+    d.bowling.forEach((b) => {
+      const prev = bowling.get(b.player);
+      bowling.set(b.player, { wickets: (prev?.wickets || 0) + b.wickets });
+    });
   });
   match.innings.forEach((inn) => {
     (inn.log || []).forEach((ev) => {
@@ -83,10 +106,11 @@ async function applyStats(match, derived) {
     });
   });
 
-  const everyone = [
+  const everyone = new Set([
     ...match.teamA.players.map(String),
     ...match.teamB.players.map(String),
-  ];
+    ...(match.commonPlayer ? [String(match.commonPlayer)] : []),
+  ]);
   for (const pid of everyone) {
     const inc = { "stats.matches": 1 };
     const bat = batting.get(pid);
@@ -95,7 +119,7 @@ async function applyStats(match, derived) {
     if (bowl) inc["stats.wickets"] = bowl.wickets;
     if (catches.get(pid)) inc["stats.catches"] = catches.get(pid);
     const update = { $inc: inc };
-    if (bat) update.$max = { "stats.highestScore": bat.runs };
+    if (bat) update.$max = { "stats.highestScore": bat.best };
     await Player.updateOne({ _id: pid }, update);
   }
   match.statsApplied = true;
@@ -115,7 +139,7 @@ async function autoFinishIfDone(match) {
       derived[0],
       derived[1],
       battingFirst,
-      squadSize(match, chasingKey)
+      maxWicketsFor(battingPool(match, chasingKey))
     );
     match.status = "completed";
     await applyStats(match, derived);
@@ -136,21 +160,33 @@ const loadMatch = async (req, res) => {
 
 // POST /api/matches — squads + overs; the toss happens next.
 export const createMatch = async (req, res) => {
-  const { teamAName, teamBName, teamAPlayers, teamBPlayers, overs } = req.body;
+  const { teamAName, teamBName, teamAPlayers, teamBPlayers, overs, commonPlayer } = req.body;
   const a = Array.isArray(teamAPlayers) ? teamAPlayers : [];
   const b = Array.isArray(teamBPlayers) ? teamBPlayers : [];
+  const common = commonPlayer ? String(commonPlayer) : null;
   if (!teamAName?.trim() || !teamBName?.trim()) {
     return res.status(400).json({ message: "Both teams need a name" });
   }
-  if (a.length < 3 || a.length > 11 || b.length < 3 || b.length > 11) {
-    return res.status(400).json({ message: "Each team needs 3 to 11 players" });
+  // With a common player, two-player teams work (2 + common = a
+  // batting pool of 3, which plays last-man-stands).
+  const minSize = common ? 2 : 3;
+  if (a.length < minSize || a.length > 11 || b.length < minSize || b.length > 11) {
+    return res.status(400).json({
+      message: common
+        ? "With a common player, each team needs 2 to 11 players"
+        : "Each team needs 3 to 11 players",
+    });
   }
   const all = [...a, ...b];
   if (new Set(all.map(String)).size !== all.length) {
     return res.status(400).json({ message: "A player can't be in both teams" });
   }
-  const found = await Player.countDocuments({ _id: { $in: all } });
-  if (found !== all.length) {
+  if (common && all.map(String).includes(common)) {
+    return res.status(400).json({ message: "The common player can't also be in a team" });
+  }
+  const toCheck = common ? [...all, common] : all;
+  const found = await Player.countDocuments({ _id: { $in: toCheck } });
+  if (found !== toCheck.length) {
     return res.status(400).json({ message: "Some players don't exist" });
   }
   const oversNum = Math.floor(Number(overs) || 0);
@@ -160,6 +196,7 @@ export const createMatch = async (req, res) => {
   const match = await Match.create({
     teamA: { name: teamAName.trim(), players: a },
     teamB: { name: teamBName.trim(), players: b },
+    commonPlayer: common,
     oversPerInnings: oversNum,
     createdBy: req.user.id,
   });
@@ -221,27 +258,31 @@ export const appendEvent = async (req, res) => {
   const innIndex = match.innings.length - 1;
   const inn = match.innings[innIndex];
   const { derived, target } = deriveAll(match);
-  const ctx = {
-    squadSize: squadSize(match, inn.battingTeam),
-    oversLimit: match.oversPerInnings,
-    target: innIndex === 1 ? target : null,
-  };
+  const ctx = ctxFor(match, inn.battingTeam, innIndex === 1 ? target : null);
   const ev = req.body.event || {};
-  // Player references must belong to this match.
+  // Player references must belong to this match — with the common
+  // player allowed everywhere except as a bowler.
+  const commonId = match.commonPlayer ? String(match.commonPlayer) : null;
   const battingIds = new Set(
     (inn.battingTeam === "A" ? match.teamA.players : match.teamB.players).map(String)
   );
   const fieldingIds = new Set(
     (inn.battingTeam === "A" ? match.teamB.players : match.teamA.players).map(String)
   );
+  if (commonId) battingIds.add(commonId);
+  const fielderIds = new Set(fieldingIds);
+  if (commonId) fielderIds.add(commonId);
   const refsOk =
     (!ev.striker || battingIds.has(String(ev.striker))) &&
     (!ev.nonStriker || battingIds.has(String(ev.nonStriker))) &&
-    (!ev.player || battingIds.has(String(ev.player)) || fieldingIds.has(String(ev.player))) &&
+    (!ev.player || battingIds.has(String(ev.player)) || fielderIds.has(String(ev.player))) &&
     (!ev.bowler || fieldingIds.has(String(ev.bowler))) &&
     (!ev.outId || battingIds.has(String(ev.outId))) &&
-    (!ev.fielder || fieldingIds.has(String(ev.fielder)));
+    (!ev.fielder || fielderIds.has(String(ev.fielder)));
   if (!refsOk) return res.status(400).json({ message: "That player is not in this match" });
+  if (ev.kind === "setBowler" && ev.player && !fieldingIds.has(String(ev.player))) {
+    return res.status(400).json({ message: "The common player doesn't bowl" });
+  }
 
   const err = validateEvent(derived[innIndex], ev, ctx);
   if (err) return res.status(400).json({ message: err });

@@ -37,6 +37,13 @@ belongs to the group.
 - Every match is saved as a full **scoreboard**: batting and bowling
   cards, over-by-over ball log, and a top-performances hero (best batter
   and best bowler with photo and stat tiles)
+- **Last Man Standing:** when a batting pool is exactly 3, the innings
+  doesn't end at 2 wickets — the last batsman bats alone, facing every
+  ball, until he falls or the overs run out
+- **Common player:** with an odd group count, one player can be named
+  common — he belongs to no team, **bats for both** (and can be named as
+  a fielder), never bowls, and his figures from both innings combine on
+  his card. A common player also makes 2-a-side teams legal
 
 ### Auction Room (Sprint 2)
 

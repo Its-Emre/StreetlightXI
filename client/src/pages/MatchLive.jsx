@@ -35,7 +35,7 @@ function Sheet({ title, children, onClose }) {
   );
 }
 
-function PlayerPickList({ players, onPick, disabledIds = new Set() }) {
+function PlayerPickList({ players, onPick, disabledIds = new Set(), commonId = null }) {
   return (
     <div className="grid gap-2">
       {players.map((p) => (
@@ -48,6 +48,11 @@ function PlayerPickList({ players, onPick, disabledIds = new Set() }) {
         >
           <Avatar player={p} />
           <span className="flex-1 truncate font-semibold text-white">{p.name}</span>
+          {p._id === commonId && (
+            <span className="rounded-full bg-flood-500/20 px-2 py-0.5 text-[10px] font-bold text-flood-300 ring-1 ring-flood-500/40">
+              🌟 COMMON
+            </span>
+          )}
           <span className="text-xs text-ink-400">{p.role}</span>
         </button>
       ))}
@@ -91,13 +96,21 @@ export default function MatchLive() {
   const nameOf = (pid) => players[pid]?.name || "Player";
   const cur = match?.innings?.[match.innings.length - 1] || null;
   const battingKey = cur?.battingTeam;
-  const battingSquad = useMemo(
-    () => (battingKey ? (battingKey === "A" ? match.teamA.players : match.teamB.players) : []),
-    [match, battingKey]
-  );
+  const commonId = match?.commonPlayer || null;
+  const battingSquad = useMemo(() => {
+    if (!battingKey) return [];
+    const base = battingKey === "A" ? match.teamA.players : match.teamB.players;
+    // The common player bats for both teams.
+    return commonId ? [...base, commonId] : base;
+  }, [match, battingKey, commonId]);
   const fieldingSquad = useMemo(
     () => (battingKey ? (battingKey === "A" ? match.teamB.players : match.teamA.players) : []),
     [match, battingKey]
+  );
+  // Fielder picks include the common player; bowler picks never do.
+  const fielderSquad = useMemo(
+    () => (commonId ? [...fieldingSquad, commonId] : fieldingSquad),
+    [fieldingSquad, commonId]
   );
 
   const send = async (event) => {
@@ -344,15 +357,28 @@ export default function MatchLive() {
           <OpenersPicker
             battingSquad={battingSquad.map((pid) => players[pid]).filter(Boolean)}
             fieldingSquad={fieldingSquad.map((pid) => players[pid]).filter(Boolean)}
+            commonId={commonId}
             busy={busy}
             onDone={(striker, nonStriker, bowler) => send({ kind: "setOpeners", striker, nonStriker, bowler })}
           />
         )}
 
+        {/* Last man standing banner */}
+        {st?.loneBatsman && !st.complete && (
+          <div className="mb-3 rounded-2xl bg-flood-500/15 px-4 py-3 text-center ring-1 ring-flood-500/40">
+            <span className="font-display text-lg font-black italic text-flood-300">
+              ⚡ LAST MAN STANDING
+            </span>
+            <p className="text-sm text-ink-200">
+              {nameOf(st.strikerId)} akela khelega — koi partner nahi. Out hua toh innings khatam.
+            </p>
+          </div>
+        )}
+
         {/* Crease + bowler */}
         {st && !openersPending && (
           <div className="space-y-3">
-            {[["strikerId", true], ["nonStrikerId", false]].map(([key, onStrike]) => {
+            {(st.loneBatsman ? [["strikerId", true]] : [["strikerId", true], ["nonStrikerId", false]]).map(([key, onStrike]) => {
               const pid = st[key];
               const bat = st.batting.find((b) => b.player === pid);
               const p = players[pid];
@@ -479,6 +505,7 @@ export default function MatchLive() {
           <PlayerPickList
             players={yetToBat.map((pid) => players[pid]).filter(Boolean)}
             onPick={(pid) => send({ kind: "setBatsman", player: pid })}
+            commonId={commonId}
           />
         </Sheet>
       )}
@@ -524,7 +551,8 @@ export default function MatchLive() {
         <WicketSheet
           striker={players[st.strikerId]}
           nonStriker={players[st.nonStrikerId]}
-          fielders={fieldingSquad.map((pid) => players[pid]).filter(Boolean)}
+          fielders={fielderSquad.map((pid) => players[pid]).filter(Boolean)}
+          commonId={commonId}
           onDone={(ev) => send(ev)}
           onClose={() => setSheet(null)}
         />
@@ -554,7 +582,7 @@ function PadButton({ label, onClick, disabled, accent, small }) {
   );
 }
 
-function OpenersPicker({ battingSquad, fieldingSquad, onDone, busy }) {
+function OpenersPicker({ battingSquad, fieldingSquad, commonId, onDone, busy }) {
   const [striker, setStriker] = useState(null);
   const [nonStriker, setNonStriker] = useState(null);
   const [bowler, setBowler] = useState(null);
@@ -578,6 +606,11 @@ function OpenersPicker({ battingSquad, fieldingSquad, onDone, busy }) {
     >
       <Avatar player={p} size="h-8 w-8 text-xs" />
       <span className="flex-1 truncate font-semibold">{p.name}</span>
+      {p._id === commonId && (
+        <span className="rounded-full bg-flood-500/20 px-2 py-0.5 text-[10px] font-bold text-flood-300 ring-1 ring-flood-500/40">
+          🌟 COMMON
+        </span>
+      )}
       {selected && <span>✅</span>}
     </button>
   );
@@ -610,7 +643,7 @@ const WK_TYPES = [
   ["hitwicket", "Hit Wicket"],
 ];
 
-function WicketSheet({ striker, nonStriker, fielders, onDone, onClose }) {
+function WicketSheet({ striker, nonStriker, fielders, commonId, onDone, onClose }) {
   const [type, setType] = useState("bowled");
   const [outId, setOutId] = useState(striker?.id);
   const [runs, setRuns] = useState(0);
@@ -703,6 +736,7 @@ function WicketSheet({ striker, nonStriker, fielders, onDone, onClose }) {
                 }`}
               >
                 {p.name}
+                {p._id === commonId ? " 🌟" : ""}
               </button>
             ))}
           </div>

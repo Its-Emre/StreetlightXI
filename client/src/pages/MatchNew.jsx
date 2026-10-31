@@ -17,6 +17,7 @@ export default function MatchNew() {
   const [teamBName, setTeamBName] = useState("Team B");
   const [teamA, setTeamA] = useState(new Set());
   const [teamB, setTeamB] = useState(new Set());
+  const [common, setCommon] = useState(null);
   const [overs, setOvers] = useState(10);
   const [creating, setCreating] = useState(false);
 
@@ -64,8 +65,14 @@ export default function MatchNew() {
       return sum + (p ? ratingOf(p) : 0);
     }, 0);
 
+  const minSize = common ? 2 : 3;
   const canStart =
-    teamA.size >= 3 && teamB.size >= 3 && teamAName.trim() && teamBName.trim() && overs >= 1 && !creating;
+    teamA.size >= minSize &&
+    teamB.size >= minSize &&
+    teamAName.trim() &&
+    teamBName.trim() &&
+    overs >= 1 &&
+    !creating;
 
   const startMatch = async () => {
     setCreating(true);
@@ -76,6 +83,7 @@ export default function MatchNew() {
         teamBName: teamBName.trim(),
         teamAPlayers: [...teamA],
         teamBPlayers: [...teamB],
+        commonPlayer: common,
         overs,
       });
       navigate(`/matches/${match.id}/live`);
@@ -163,14 +171,86 @@ export default function MatchNew() {
               ⚖️ Auto-split by rating
             </button>
             <span className="text-sm text-ink-400">
-              Pool choose karke split karo, ya dono teams haath se bharo. Har team mein 3–11 players.
+              Pool choose karke split karo, ya dono teams haath se bharo. Har team mein 3–11 players
+              (common player ke saath 2 bhi chalega).
             </span>
           </div>
 
           <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
-            {teamPicker("Team A", teamAName, setTeamAName, teamA, toggleA, teamB, "bg-pitch-600/80 ring-pitch-400")}
-            {teamPicker("Team B", teamBName, setTeamBName, teamB, toggleB, teamA, "bg-flood-600/70 ring-flood-400")}
+            {teamPicker(
+              "Team A",
+              teamAName,
+              setTeamAName,
+              teamA,
+              toggleA,
+              new Set([...teamB, ...(common ? [common] : [])]),
+              "bg-pitch-600/80 ring-pitch-400"
+            )}
+            {teamPicker(
+              "Team B",
+              teamBName,
+              setTeamBName,
+              teamB,
+              toggleB,
+              new Set([...teamA, ...(common ? [common] : [])]),
+              "bg-flood-600/70 ring-flood-400"
+            )}
           </div>
+
+          {(teamA.size === 3 || teamB.size === 3) && (
+            <p className="mt-4 rounded-2xl bg-pitch-500/10 px-4 py-3 text-sm text-pitch-300 ring-1 ring-pitch-500/30">
+              ⚡ 3-player team mein <b>Last Man Standing</b> chalega — 2 wickets ke baad aakhri
+              batsman akela batting karega, use partner ki zarurat nahi hogi.
+            </p>
+          )}
+
+          {/* Common player */}
+          <section className="mt-6 rounded-3xl border border-flood-500/30 bg-ink-900/70 p-5">
+            <h2 className="font-display text-lg font-black italic text-white">
+              🌟 Common Player <span className="text-sm font-medium not-italic text-ink-400">(optional)</span>
+            </h2>
+            <p className="mt-1 text-sm text-ink-300">
+              Players odd hain toh ek ko common bana do — woh <b>dono teams se batting</b> karega,
+              kisi team mein nahi hoga, aur bowling nahi karega. Common ho toh 2-player teams bhi chalegi.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setCommon(null)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ${
+                  common === null
+                    ? "bg-flood-500 text-ink-950 ring-flood-400"
+                    : "bg-ink-950 text-ink-200 ring-ink-700"
+                }`}
+              >
+                Koi nahi
+              </button>
+              {sorted
+                .filter((p) => !teamA.has(p._id) && !teamB.has(p._id))
+                .map((p) => (
+                  <button
+                    key={p._id}
+                    type="button"
+                    onClick={() => setCommon(common === p._id ? null : p._id)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ${
+                      common === p._id
+                        ? "bg-flood-500 text-ink-950 ring-flood-400"
+                        : "bg-ink-950 text-ink-200 ring-ink-700 hover:ring-flood-500/60"
+                    }`}
+                  >
+                    🌟 {p.name}
+                  </button>
+                ))}
+            </div>
+            {common && (
+              <p className="mt-3 text-sm text-flood-300">
+                Batting pool dono taraf {teamA.size + 1} aur {teamB.size + 1} ka hoga.
+                {teamA.size + 1 === 3 || teamB.size + 1 === 3
+                  ? " Pool 3 ka hai — wahan Last Man Standing chalega: aakhri batsman akela khelega."
+                  : ""}
+              </p>
+            )}
+          </section>
 
           <section className="mt-6 rounded-3xl border border-ink-800 bg-ink-900/70 p-5">
             <h2 className="font-display text-lg font-black italic text-white">Overs per innings</h2>
@@ -211,7 +291,9 @@ export default function MatchNew() {
           </button>
           {!canStart && !creating && (
             <p className="mt-3 text-center text-sm text-ink-400">
-              Dono teams mein kam se kam 3 players chahiye.
+              {common
+                ? "Common player ke saath dono teams mein kam se kam 2 players chahiye."
+                : "Dono teams mein kam se kam 3 players chahiye — ya ek common player laga do, phir 2 bhi chalega."}
             </p>
           )}
         </>

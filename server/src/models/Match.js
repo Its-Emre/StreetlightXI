@@ -41,6 +41,10 @@ const matchSchema = new mongoose.Schema(
   {
     teamA: { type: teamSchema, required: true },
     teamB: { type: teamSchema, required: true },
+    // Optional common player: in neither squad, but bats for BOTH
+    // teams (the classic fix when the group count is odd). He may also
+    // be named as a fielder; he never bowls.
+    commonPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
     oversPerInnings: { type: Number, required: true, min: 1, max: 50 },
     toss: {
       type: new mongoose.Schema(
